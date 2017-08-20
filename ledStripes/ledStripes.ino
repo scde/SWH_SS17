@@ -47,8 +47,18 @@ void ledShineWallColor(int i, Adafruit_NeoPixel *pixels, int r, int g, int b){
   pixels->setPixelColor(i, pixels->Color(r,g,b)); // 255,0,0
 }
 
-void ledOff( int i, Adafruit_NeoPixel *pixels, int r, int g, int b){
-  pixels->setPixelColor(i, pixels->Color(r,g,b));// 0,0,0
+void ledOff( int i, Adafruit_NeoPixel *pixels){
+  pixels->setPixelColor(i, pixels->Color(0,0,0));
+}
+
+void allLedOff(int i){
+  for (int y=0;y<sizeof(ledStripes);y++){
+    for (int i =0; i<NUMPIXELS;i++){
+      ledOff(i,ledStripes[y]);
+    }
+    ledStripes[y].show();
+  }
+    
 }
 
 void ledsShininginDifferentColors(int i, int chosenLedSector){
@@ -90,8 +100,8 @@ void loop() {
     pixelsC.show();
     pixelsD.show();
     pixelsE.show();
-    pixelsF.show();
-
-    delay(1000); 
+    pixelsF.show(); 
   }
+  delay(1000);
+  
 }
