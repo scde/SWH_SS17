@@ -19,6 +19,7 @@
 #define NOCOLORVALUE     0
 # define RANDOMLOWERLIMIT  0
 # define RANDOMUPPERLIMIT  5
+# define NUMBEROFSECTORS  6
 
 
 // How many NeoPixels are attached to the Arduino?
@@ -51,18 +52,18 @@ void ledOff( int i, Adafruit_NeoPixel *pixels){
   pixels->setPixelColor(i, pixels->Color(0,0,0));
 }
 
-void allLedOff(int i){
-  for (int y=0;y<sizeof(ledStripes);y++){
+void allLedOff(){
+  for (int y=0;y<NUMBEROFSECTORS;y++){
     for (int i =0; i<NUMPIXELS;i++){
       ledOff(i,ledStripes[y]);
     }
-    ledStripes[y].show();
+    ledStripes[y]->show();
   }
     
 }
 
 void ledsShininginDifferentColors(int i, int chosenLedSector){
-  for (int y=0;y<sizeof(ledStripes);y++){
+  for (int y=0;y<NUMBEROFSECTORS;y++){
     if(y == chosenLedSector){
       ledShineGapColor( i, ledStripes[y], NOCOLORVALUE,GREENVALUE,NOCOLORVALUE);
       continue;
