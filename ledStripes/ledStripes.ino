@@ -134,6 +134,7 @@ void getRandomArray(byte *randomValues, int length ){
               randomValues[i] = random( RANDOM_LOWER_LIMIT,  RANDOM_UPPER_LIMIT);
           }
           // TODO:WHILE SCHLEIFE UM ZU SCHAUEN, OB ALLE RANDOMS anders sind
+          // TODO: ABFRAGEN, WAS DER VORGÄNGER FÜR EINE ZAHL WAR, DAMIT MAN UNTERSCHIEDLICHE FELDER BELEUCHTET NICHT IMMER DIE GLEICHEN
        }
     }
 }
