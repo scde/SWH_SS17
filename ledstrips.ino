@@ -5,12 +5,12 @@
 
 #define   STRIP_LENGTH      7
 
-#define   PIN_STRIP_1_2     12
+#define   PIN_STRIP_1_2     11
 #define   PIN_STRIP_3_4     12
-#define   PIN_STRIP_5_6     12
-#define   PIN_STRIP_7_8     12
-#define   PIN_STRIP_9_10    12
-#define   PIN_STRIP_11_12   12
+#define   PIN_STRIP_5_6     8
+#define   PIN_STRIP_7_8     7
+#define   PIN_STRIP_9_10    6
+#define   PIN_STRIP_11_12   10
 
 // Parameter 1 = number of pixels in strip
 // Parameter 2 = Arduino pin number (most are valid)
@@ -20,12 +20,12 @@
 //   NEO_GRB     Pixels are wired for GRB bitstream (most NeoPixel products)
 //   NEO_RGB     Pixels are wired for RGB bitstream (v1 FLORA pixels, not v2)
 //   NEO_RGBW    Pixels are wired for RGBW bitstream (NeoPixel RGBW products)
-Adafruit_NeoPixel strip_1_2 = Adafruit_NeoPixel(STRIP_LENGTH, PIN_STRIP_1_2, NEO_GRB + NEO_KHZ800);
-Adafruit_NeoPixel strip_3_4 = Adafruit_NeoPixel(STRIP_LENGTH, PIN_STRIP_3_4, NEO_GRB + NEO_KHZ800);
-Adafruit_NeoPixel strip_5_6 = Adafruit_NeoPixel(STRIP_LENGTH, PIN_STRIP_5_6, NEO_GRB + NEO_KHZ800);
-Adafruit_NeoPixel strip_7_8 = Adafruit_NeoPixel(STRIP_LENGTH, PIN_STRIP_7_8, NEO_GRB + NEO_KHZ800);
-Adafruit_NeoPixel strip_9_10 = Adafruit_NeoPixel(STRIP_LENGTH, PIN_STRIP_9_10, NEO_GRB + NEO_KHZ800);
-Adafruit_NeoPixel strip_11_12 = Adafruit_NeoPixel(STRIP_LENGTH, PIN_STRIP_11_12, NEO_GRB + NEO_KHZ800);
+Adafruit_NeoPixel strip_1_2 = Adafruit_NeoPixel(STRIP_LENGTH, PIN_STRIP_1_2, NEO_GRB + NEO_KHZ800); // Sector 4
+Adafruit_NeoPixel strip_3_4 = Adafruit_NeoPixel(STRIP_LENGTH, PIN_STRIP_3_4, NEO_GRB + NEO_KHZ800); // Sector 5
+Adafruit_NeoPixel strip_5_6 = Adafruit_NeoPixel(STRIP_LENGTH, PIN_STRIP_5_6, NEO_GRB + NEO_KHZ800); // Sector 2
+Adafruit_NeoPixel strip_7_8 = Adafruit_NeoPixel(STRIP_LENGTH, PIN_STRIP_7_8, NEO_GRB + NEO_KHZ800); // Sector 1
+Adafruit_NeoPixel strip_9_10 = Adafruit_NeoPixel(STRIP_LENGTH, PIN_STRIP_9_10, NEO_GRB + NEO_KHZ800); // Sector 0
+Adafruit_NeoPixel strip_11_12 = Adafruit_NeoPixel(STRIP_LENGTH, PIN_STRIP_11_12, NEO_GRB + NEO_KHZ800); // Sector 3
 
 // IMPORTANT: To reduce NeoPixel burnout risk, add 1000 uF capacitor across
 // pixel power leads, add 300 - 500 Ohm resistor on first pixel's data input
