@@ -24,6 +24,9 @@ bool exitSensorR;
 bool enterSensorL;
 bool wasAtSensorL;
 bool exitSensorL;
+bool atZeroPointer;
+bool atSensorR;
+bool atSensorL;
 
 /*bool trigger = false;*/
 /*bool triggered = false;*/
@@ -34,7 +37,7 @@ void setup() {
     pinMode(SENSOR_L, INPUT);
 
     isCalibrated = false;
-    calibrationPointer = null;
+    calibrationPointer = 0;
 
     curSector = -1;
     enterSensorR = false;
@@ -46,6 +49,8 @@ void setup() {
 }
 
 void loop() {
+
+  Serial.println(digitalRead(SENSOR_R));
     checkCollisions();
     calculateSector();
     if (!isCalibrated) {
@@ -54,14 +59,14 @@ void loop() {
         }
     }
     else {
-        startGame();
+       // startGame();
     }
 }
 
 void checkCollisions() {
     // read new sensor data
-    bool atSensorR = digitalRead(SENSOR_R) == LOW;
-    bool atSensorL = digitalRead(SENSOR_L) == LOW;
+    atSensorR = digitalRead(SENSOR_R) == LOW;
+    atSensorL = digitalRead(SENSOR_L) == LOW;
 
     // check for new/different collision reading at right sensor
     if (wasAtSensorR != atSensorR) {
@@ -122,7 +127,7 @@ void calibrateSectors() {
 
 void calculateSector() {
     // 4. set pointer position (all pointers are able to trigger both sensors)
-    else {
+    //else {
         // trigger both sensors
         if (atSensorR && atSensorL) {
             // moving pointer to the right over sensors barrier
@@ -165,7 +170,7 @@ void calculateSector() {
         /*// trigger no sensor*/
         /*else {*/
         /*}*/
-    }
+    //}
 
-    Serial.println(curSector);
+    //Serial.println(curSector);
 }

@@ -23,6 +23,8 @@
 #define   PIN_9                9
 #define   PIN_10               10
 #define   PIN_11               11
+#define   PIN_0                0 
+
 
 // How many NeoPixels are attached to the Arduino?
 #define   NUM_LEDS_PER_STRIP   7
@@ -34,6 +36,8 @@
 #define   WALL_PATTERN_1       1
 #define   WALL_PATTERN_2       2
 #define   WALL_PATTERN_3       3
+#define   RANDOM_LOWER_LIMIT   0
+#define   RANDOM_UPPER_LIMIT   6
 
 CRGB strips[NUM_SECTORS][NUM_LEDS_PER_STRIP];
 
@@ -59,18 +63,13 @@ byte bPath;
 
 void setup() {
     Serial.begin(9600);
-
-    /*curMillis = millis();*/
-    /*prevMillis = millis();*/
-    /*deltaTime = 0;*/
-
+    randomSeed(analogRead(0));
+    
     wallSpawn = false;
 
     gameSpeed = 2000;
     lastGameUpdate = 0;
 
-    /*colorUpdateTime = 20000;*/
-    /*lastColorUpdate = 0;*/
 
     rWall = 255;
     gWall = 0;
@@ -90,24 +89,7 @@ void setup() {
 }
 
 void loop() {
-    /*for (byte sector = 0; sector < NUM_SECTORS; sector++) {*/
-        /*for (byte field = 0; field < NUM_LEDS_PER_STRIP; field++) {*/
-            /*strips[sector][field].setRGB(random(0,255), random(0,255), random(0,255));*/
-        /*}*/
-    /*}*/
-    /*FastLED.show();*/
-    /*delay (2000);*/
-
-    /*curMillis = millis();*/
-    /*deltaTime = prevMillis - curMillis;*/
-    /*prevMillis = curMillis;*/
-
-    // FIXME use FastLED color sets that fit together
-    /*if (millis() - lastColorUpdate >= colorUpdateTime) {*/
-        /*lastColorUpdate = millis();*/
-        /*randomizeColors();*/
-    /*}*/
-
+   
     if (millis() - lastGameUpdate >= gameSpeed) {
         lastGameUpdate = millis();
 
@@ -119,7 +101,13 @@ void loop() {
         }
 
         if (wallSpawn) {
-            spawnPattern(random(WALL_PATTERN_1, WALL_PATTERN_3));
+          if(millis() <= 10000){
+            spawnPattern(WALL_PATTERN_1);
+        }else if(millis() <= 20000){
+            spawnPattern(WALL_PATTERN_2);
+          }else if(millis() > 20000){
+            spawnPattern(WALL_PATTERN_3);
+          }
         }
         else {
             spawnPattern(PATH_PATTERN);
@@ -128,34 +116,35 @@ void loop() {
 
         FastLED.show();
 
-        /*for (byte field = 0; field < NUM_LEDS_PER_STRIP; field++) {*/
-            /*for (byte sector = 0; sector < STRIPS_LEN; sector++) {*/
-                /*uint32_t prevColor = strips[sector].getPixelColor(field);*/
-                /*ledColorize(field, &strips[sector], rWall, gWall, bWall);*/
-            /*}*/
-        /*}*/
-
-        /*// move colors one row ahead*/
-        /*for (byte sector = 0; sector < STRIPS_LEN; sector++) {*/
-            /*for (byte field = NUM_LEDS_PER_STRIP - 1; field > 0; field--) {*/
-                /*colors[sector][field] = colors[sector][field - 1];*/
-            /*}*/
-        /*}*/
-
-        /*// fill inner circle*/
-        /*for (byte sector = 0; sector < STRIPS_LEN; sector++) {*/
-            /*colors[sector][0] = ;*/
-        /*}*/
-
-        /*for (byte i = 0; i < STRIPS_LEN; i++) {*/
-            /*strips[i].show();*/
-        /*}*/
     }
 
     delay(10);
 }
 
+void getRandomArray(byte *randomValues, int length ){
+   bool duplicatedValue = true;
+  
+  for (byte i =0;i<sizeof(randomValues);i++){
+  randomValues[i] = random( RANDOM_LOWER_LIMIT,  RANDOM_UPPER_LIMIT);
+  }
+  
+    for (int i = 0; i < (sizeof(randomValues)/sizeof(byte)) - 1; i++) {
+      for (int j = i + 1; j < (sizeof(randomValues)/sizeof(byte)); j++) {
+          if (randomValues[i] == randomValues[j]) {
+              randomValues[i] = random( RANDOM_LOWER_LIMIT,  RANDOM_UPPER_LIMIT);
+          }
+          // TODO:WHILE SCHLEIFE UM ZU SCHAUEN, OB ALLE RANDOMS anders sind
+       }
+    }
+}
+
+
+
 void spawnPattern(byte patternType) {
+  int randomDoor = -1;
+  byte randomValues[3];
+  getRandomArray(randomValues, (sizeof(randomValues)/sizeof(byte)));
+  
     switch (patternType) {
         case PATH_PATTERN:
             for (byte sector = 0; sector < NUM_SECTORS; sector++) {
@@ -163,37 +152,70 @@ void spawnPattern(byte patternType) {
             }
             break;
         // TODO better more random patterns, e.g. 1 gap, 2 gaps, 3 gaps, 4 gaps
-        case WALL_PATTERN_1:
-            for (byte sector = 0; sector < NUM_SECTORS; sector++) {
-                if (sector % 2 == 0) {
-                    strips[sector][FIRST_FIELD].setRGB(rPath, gPath, bPath);
-                }
-                else {
-                    strips[sector][FIRST_FIELD].setRGB(rWall, gWall, bWall);
+        case WALL_PATTERN_1: 
+       
+            for (byte sector = 0; sector < NUM_SECTORS; sector++) 
+            {
+                for (byte i = 0; i < sizeof(randomValues)/sizeof(byte); i++)
+                {
+                  Serial.println(randomValues[i]);
+                    if(sector == randomValues[i])
+                    {
+                        strips[sector][FIRST_FIELD].setRGB(rPath, gPath, bPath);
+                        break;
+                    }
+                    else
+                    {
+                        strips[sector][FIRST_FIELD].setRGB(rWall, gWall, bWall);
+                    }
                 }
             }
             break;
         case WALL_PATTERN_2:
-            for (byte sector = 0; sector < NUM_SECTORS; sector++) {
-                if (sector % 3 == 0) {
-                    strips[sector][FIRST_FIELD].setRGB(rPath, gPath, bPath);
-                }
-                else {
-                    strips[sector][FIRST_FIELD].setRGB(rWall, gWall, bWall);
+             for (byte sector = 0; sector < NUM_SECTORS; sector++) 
+            {
+                for (byte i = 0; i < sizeof(randomValues)/sizeof(byte)-1; i++)
+                {
+                    if(sector == randomValues[i])
+                    {
+                        strips[sector][FIRST_FIELD].setRGB(rPath, gPath, bPath);
+                        break;
+                    }
+                    else
+                    {
+                        strips[sector][FIRST_FIELD].setRGB(rWall, gWall, bWall);
+                    }
                 }
             }
             break;
         case WALL_PATTERN_3:
-            for (byte sector = 0; sector < NUM_SECTORS; sector++) {
-                if (sector % 4 == 0) {
-                    strips[sector][FIRST_FIELD].setRGB(rPath, gPath, bPath);
-                }
-                else {
-                    strips[sector][FIRST_FIELD].setRGB(rWall, gWall, bWall);
+            for (byte sector = 0; sector < NUM_SECTORS; sector++) 
+            {
+                for (byte i = 0; i < sizeof(randomValues)/sizeof(byte)-2; i++)
+                {
+                    if(sector == randomValues[i])
+                    {
+                        strips[sector][FIRST_FIELD].setRGB(rPath, gPath, bPath);
+                        break;
+                    }
+                    else
+                    {
+                        strips[sector][FIRST_FIELD].setRGB(rWall, gWall, bWall);
+                    }
                 }
             }
             break;
     }
+    
+   byte counter = 0;
+   for (byte sector = 0; sector < NUM_SECTORS; sector++) {
+     if(strips[sector][FIRST_FIELD].red ==rWall && strips[sector][FIRST_FIELD].green == gWall && strips[sector][FIRST_FIELD].blue == bWall){
+       counter ++;
+     }
+     if(counter == 6){
+      spawnPattern(patternType);
+     }
+   }
 }
 
 void randomizeColors() {
@@ -209,30 +231,4 @@ void randomizeColors() {
     bPath = pathColor;
 }
 
-//void ledColorize(int field, Adafruit_NeoPixel *strip, byte r, byte g, byte b){
-//    strip->setPixelColor(field, strip->Color(r,g,b));
-//}
-//
-//void ledOff(int field, Adafruit_NeoPixel *strip){
-//    ledColorize(field, strip, 0, 0, 0);
-//}
-//
-//void allLedOff(){
-//    for (byte sector = 0; sector < STRIPS_LEN; sector++){
-//        for (byte field = 0; field < NUM_LEDS_PER_STRIP; field++){
-//            ledOff(field, &strips[sector]);
-//        }
-//        strips[sector].show();
-//    }
-//}
-//
-//void ledsShininginDifferentColors(int i, int chosenLedSector){
-//    for (int y=0; y < STRIPS_LEN; y++){
-//        if(y == chosenLedSector){
-//            ledColorize( i, &strips[y], NOCOLORVALUE,GREENVALUE,NOCOLORVALUE);
-//            continue;
-//        }
-//        ledColorize( i,  &strips[y], REDVALUE, NOCOLORVALUE,NOCOLORVALUE);
-//
-//    }
-//}
+
