@@ -1,21 +1,20 @@
-// NeoPixel Ring simple sketch (c) 2013 Shae Erisson
-// released under the GPLv3 license to match the rest of the AdaFruit NeoPixel library
-
 #include "FastLED.h"
- 
-# define RANDOMLOWERLIMIT  0
-# define RANDOMUPPERLIMIT  5
+//LED Constants
+//Set PINS for all LEDs
+#define PIN_6    6
+#define PIN_7    7
+#define PIN_8    8
+#define PIN_9    9
+#define PIN_10  10
+#define PIN_11  11 
+#define PIN_0    0
+
+//Set Constants for randomization
+# define RANDOMLOWERLIMIT 0
+# define RANDOMUPPERLIMIT 5
 # define NUMBEROFSECTORS  6
-#define   PIN_6                6
-#define   PIN_7                7
-#define   PIN_8                8
-#define   PIN_9                9
-#define   PIN_10               10
-#define   PIN_11               11
-#define   PIN_0                0 
 
-
-// How many NeoPixels are attached to the Arduino?
+// Set Constants for different Patterns
 #define   NUM_LEDS_PER_STRIP   7
 #define   NUM_SECTORS          6
 #define   FIRST_FIELD          0
@@ -24,7 +23,21 @@
 #define   WALL_PATTERN_2       2
 #define   WALL_PATTERN_3       3
 
+//Sector Constants
+// TODO Set accordingly
+#define SENSOR_R 5 // with the sensors at 12 o'clock it is the RIGHT one
+#define SENSOR_L 9 // with the sensors at 12 o'clock it is the LEFT one
 
+#define FIRST_SECTOR 0
+#define LAST_SECTOR 5
+
+// values for moveDirection
+#define MOVING_RIGHT 1
+#define MOVING_LEFT  2
+#define MOVING_IN_SECTOR 0
+
+
+// LED Variables
 CRGB strips[NUM_SECTORS][NUM_LEDS_PER_STRIP];
 
 bool wallSpawn;
@@ -42,9 +55,36 @@ byte rPath;
 byte gPath;
 byte bPath;
 
+
+//Sector Variables
+// 7 sector values (-1 [not calibrated], 0, 1, 2, 3, 4, 5)
+byte curSector;
+
+// for tracking move direction while in sensor range
+byte moveDirection;
+
+int calibrationPointer;
+bool isCalibrated;
+
+bool atSensorR;
+bool enterSensorR;
+bool wasAtSensorR;
+bool exitSensorR;
+
+bool atSensorL;
+bool enterSensorL;
+bool wasAtSensorL;
+bool exitSensorL;
+
 void setup() {
     Serial.begin(9600);
-    randomSeed(analogRead(0));
+
+    ledSetup();
+    sensorSetup();
+}
+
+void ledSetup(){
+  randomSeed(analogRead(0));
     
     wallSpawn = false;
 
@@ -69,9 +109,28 @@ void setup() {
     FastLED.addLeds<NEOPIXEL, PIN_11>(strips[5], NUM_LEDS_PER_STRIP);
 }
 
+void sensorSetup(){
+    pinMode(SENSOR_R, INPUT);
+    pinMode(SENSOR_L, INPUT);
+
+    isCalibrated = false;
+
+    curSector = -1;
+    
+    enterSensorR = false;
+    wasAtSensorR = false;
+    exitSensorR = false;
+    enterSensorL = false;
+    wasAtSensorL = false;
+    exitSensorL = false;
+}
 void loop() {
-   
-    if (millis() - lastGameUpdate >= gameSpeed) {
+    ledLoop();
+    sensorLoop();
+}
+
+void ledLoop(){
+  if (millis() - lastGameUpdate >= gameSpeed) {
         lastGameUpdate = millis();
 
         // moves colors out one field and overwrites the last one
@@ -80,8 +139,7 @@ void loop() {
                     &strips[sector][FIRST_FIELD],
                     (NUM_LEDS_PER_STRIP - 1) * sizeof( CRGB));       
         }
-
-     
+             
         if (wallSpawn) {
           if(millis() <= 10000){
             spawnPattern(WALL_PATTERN_1);
@@ -102,23 +160,6 @@ void loop() {
 
     }
 }
-
-void getRandomArray(byte *randomValues, int length ){
-
-  int openFields=3;
-  long lastNumber = 0;
-  for (byte i =0;i<openFields;i++){
-    long minNumber = lastNumber + iteration; 
-    long maxNumber = 5 - (openFields-i-1) + iteration;
-    long randomNumber = random( minNumber,  maxNumber + 1);
-    randomNumber = (randomNumber + iteration) % 6;
-    randomValues[i] = randomNumber;
-    lastNumber = randomNumber+1;
-  }
-  iteration++;
-}
-
-
 
 void spawnPattern(byte patternType) {
   int randomDoor = -1;
@@ -207,6 +248,21 @@ void spawnPattern(byte patternType) {
    }
 }
 
+void getRandomArray(byte *randomValues, int length ){
+
+  int openFields=3;
+  long lastNumber = 0;
+  for (byte i =0;i<openFields;i++){
+    long minNumber = lastNumber + iteration; 
+    long maxNumber = 5 - (openFields-i-1) + iteration;
+    long randomNumber = random( minNumber,  maxNumber + 1);
+    randomNumber = (randomNumber + iteration) % 6;
+    randomValues[i] = randomNumber;
+    lastNumber = randomNumber+1;
+  }
+  iteration++;
+}
+
 void randomizeColors() {
     byte wallColor = (byte) random(0, 255);
     byte pathColor = (byte) random(0, 255);
@@ -220,4 +276,107 @@ void randomizeColors() {
     bPath = pathColor;
 }
 
+void sensorLoop(){
+  checkSensors();
+    
+    if (!isCalibrated) {
+        calibrateSectors();
+    }
+    else {
+        calculateSector();
+        // TODO start game
+    }
+}
 
+// check light sensor readings
+void checkSensors() {
+    // reset enter and exit values
+    enterSensorR = false;
+    exitSensorR = false;
+
+    enterSensorL = false;
+    exitSensorL = false;
+
+    // read new sensor data
+    atSensorR = digitalRead(SENSOR_R) == LOW;
+    atSensorL = digitalRead(SENSOR_L) == LOW;
+
+    // check if right sensor values changed
+    if (wasAtSensorR != atSensorR) {
+        // check if exiting right sensor
+        if (wasAtSensorR) {
+            exitSensorR = true;
+        }
+        // check if entering right sensor
+        else {
+            enterSensorR = true;
+        }
+    }
+
+    // check if left sensor values changed
+    if (wasAtSensorL != atSensorL) {
+        // check if exiting left sensor
+        if (wasAtSensorL) {
+            exitSensorL = true;
+        }
+        // check if entering left sensor
+        else {
+            enterSensorL = true;
+        }
+    }
+
+    // set values for next loop
+    wasAtSensorR = atSensorR;
+    wasAtSensorL = atSensorL;
+}
+
+void calibrateSectors() {
+    // initialize when exiting left
+    if (exitSensorR && !atSensorL) {
+        isCalibrated = true; // starts game
+        curSector = FIRST_SECTOR;
+    }
+    // initialize when exiting right
+    if (exitSensorL && !atSensorR) {
+        isCalibrated = true; // starts game
+        curSector = LAST_SECTOR;
+    }
+}
+
+void calculateSector() {
+    // 4. set pointer position (all pointers are able to trigger both sensors)
+    // trigger both sensors
+    if (atSensorR && atSensorL) {
+        // moving pointer to the right over sensors barrier
+        if (enterSensorR) {
+            // handle overflow
+            if (curSector == LAST_SECTOR) {
+                curSector = FIRST_SECTOR;
+            }
+            else {
+                curSector++;
+            }
+        }
+        // moving pointer to the left over sensors barrier
+        else if (enterSensorL) {
+            // handle underflow
+            if (curSector == FIRST_SECTOR) {
+                curSector = LAST_SECTOR;
+            }
+            else {
+                curSector--;
+            }
+        }
+    }
+    // TODO FIXME if ist nicht ausreichend weil es sein kann das sie sich reinbewegen zurück aber nicht komplett raus und wieder rein
+    else {
+        switch (moveDirection) {
+            case MOVING_RIGHT:
+                break;
+            case MOVING_LEFT:
+                break;
+            case MOVING_IN_SECTOR:
+                break;
+        }
+    }
+}
