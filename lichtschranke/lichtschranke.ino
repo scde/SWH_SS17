@@ -7,7 +7,7 @@
 
 // values for moveDirection
 #define MOVING_RIGHT 1
-#define MOVING_LEFT -1
+#define MOVING_LEFT  2
 #define MOVING_IN_SECTOR 0
 
 // 7 sector values (-1 [not calibrated], 0, 1, 2, 3, 4, 5)
@@ -53,7 +53,7 @@ void loop() {
         calibrateSectors();
     }
     else {
-    calculateSector();
+        calculateSector();
         // TODO start game
     }
 }
@@ -102,12 +102,12 @@ void checkSensors() {
 
 void calibrateSectors() {
     // initialize when exiting left
-    else if (exitSensorR && !atSensorL) {
+    if (exitSensorR && !atSensorL) {
         isCalibrated = true; // starts game
         curSector = FIRST_SECTOR;
     }
     // initialize when exiting right
-    else if (exitSensorL && !atSensorR) {
+    if (exitSensorL && !atSensorR) {
         isCalibrated = true; // starts game
         curSector = LAST_SECTOR;
     }
@@ -145,7 +145,7 @@ void calculateSector() {
                 break;
             case MOVING_LEFT:
                 break;
-            case MOVING_IN_SENSOR:
+            case MOVING_IN_SECTOR:
                 break;
         }
     }
