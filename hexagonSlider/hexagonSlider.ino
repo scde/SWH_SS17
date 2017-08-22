@@ -75,12 +75,13 @@ bool atSensorL;
 bool enterSensorL;
 bool wasAtSensorL;
 bool exitSensorL;
+bool exitSensorRLoopBefore;
+bool exitSensorRLoopBefore;
 
 void setup() {
     Serial.begin(9600);
-
-    ledSetup();
     sensorSetup();
+    ledSetup();
 }
 
 void ledSetup(){
@@ -123,6 +124,8 @@ void sensorSetup(){
     enterSensorL = false;
     wasAtSensorL = false;
     exitSensorL = false;
+    exitSensorRLoopBefore = false;
+    exitSensorRLoopBefore = false;
 }
 void loop() {
     ledLoop();
@@ -296,7 +299,7 @@ void checkSensors() {
 
     enterSensorL = false;
     exitSensorL = false;
-
+   
     // read new sensor data
     atSensorR = digitalRead(SENSOR_R) == LOW;
     atSensorL = digitalRead(SENSOR_L) == LOW;
@@ -350,6 +353,11 @@ void calculateSector() {
         // moving pointer to the right over sensors barrier
         if (enterSensorR) {
             // handle overflow
+
+            if(wasAtSensorR){
+              curSector = FIRST_SECTOR;
+            }
+            
             if (curSector == LAST_SECTOR) {
                 curSector = FIRST_SECTOR;
             }
