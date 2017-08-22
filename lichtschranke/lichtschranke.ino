@@ -1,6 +1,6 @@
 // TODO Set accordingly
-#define SENSOR_R 2 // with the sensors at 12 o'clock it is the RIGHT one
-#define SENSOR_L 3 // with the sensors at 12 o'clock it is the LEFT one
+#define SENSOR_R 5 // with the sensors at 12 o'clock it is the RIGHT one
+#define SENSOR_L 9 // with the sensors at 12 o'clock it is the LEFT one
 
 #define FIRST_SECTOR 0
 #define LAST_SECTOR 5
