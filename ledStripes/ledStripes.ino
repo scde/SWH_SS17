@@ -2,7 +2,7 @@
 // released under the GPLv3 license to match the rest of the AdaFruit NeoPixel library
 
 #include "FastLED.h"
-
+ 
 // Which pin on the Arduino is connected to the NeoPixels?
 // On a Trinket or Gemma we suggest changing this to 1
 #define PINA            6
@@ -45,6 +45,7 @@ bool wallSpawn;
 
 // game update speed (wall spawn/move time)
 int gameSpeed;
+long iteration = 0;
 unsigned long lastGameUpdate;
 /*int colorUpdateTime;*/
 /*unsigned long lastColorUpdate;*/
@@ -67,16 +68,16 @@ void setup() {
     
     wallSpawn = false;
 
-    gameSpeed = 2000;
+    gameSpeed = 800;
     lastGameUpdate = 0;
 
 
-    rWall = 255;
+    rWall = 150;
     gWall = 0;
     bWall = 0;
 
     rPath = 0;
-    gPath = 255;
+    gPath = 150;
     bPath = 0;
 
     // initialize strips to off
@@ -97,16 +98,25 @@ void loop() {
         for (byte sector = 0; sector < NUM_SECTORS; sector++) {
             memmove(&strips[sector][FIRST_FIELD + 1],
                     &strips[sector][FIRST_FIELD],
-                    (NUM_LEDS_PER_STRIP - 1) * sizeof( CRGB));
+                    (NUM_LEDS_PER_STRIP - 1) * sizeof( CRGB));       
         }
+
+        /*for(byte sectors =0; sectors <NUM_SECTORS;sectors++){
+          for (byte fields = 0; fields<7; fields++){
+            strips[sectors][fields].red += fields *5;
+          }
+        }*/
+
 
         if (wallSpawn) {
           if(millis() <= 10000){
             spawnPattern(WALL_PATTERN_1);
         }else if(millis() <= 20000){
+            gameSpeed = 800;
             spawnPattern(WALL_PATTERN_2);
           }else if(millis() > 20000){
             spawnPattern(WALL_PATTERN_3);
+            gameSpeed = 750;
           }
         }
         else {
@@ -122,21 +132,18 @@ void loop() {
 }
 
 void getRandomArray(byte *randomValues, int length ){
-   bool duplicatedValue = true;
-  
-  for (byte i =0;i<sizeof(randomValues);i++){
-  randomValues[i] = random( RANDOM_LOWER_LIMIT,  RANDOM_UPPER_LIMIT);
+
+  int openFields=3;
+  long lastNumber = 0;
+  for (byte i =0;i<openFields;i++){
+    long minNumber = lastNumber + iteration; 
+    long maxNumber = 5 - (openFields-i-1) + iteration;
+    long randomNumber = random( minNumber,  maxNumber + 1);
+    randomNumber = (randomNumber + iteration) % 6;
+    randomValues[i] = randomNumber;
+    lastNumber = randomNumber+1;
   }
-  
-    for (int i = 0; i < (sizeof(randomValues)/sizeof(byte)) - 1; i++) {
-      for (int j = i + 1; j < (sizeof(randomValues)/sizeof(byte)); j++) {
-          if (randomValues[i] == randomValues[j]) {
-              randomValues[i] = random( RANDOM_LOWER_LIMIT,  RANDOM_UPPER_LIMIT);
-          }
-          // TODO:WHILE SCHLEIFE UM ZU SCHAUEN, OB ALLE RANDOMS anders sind
-          // TODO: ABFRAGEN, WAS DER VORGÄNGER FÜR EINE ZAHL WAR, DAMIT MAN UNTERSCHIEDLICHE FELDER BELEUCHTET NICHT IMMER DIE GLEICHEN
-       }
-    }
+  iteration++;
 }
 
 
@@ -149,8 +156,13 @@ void spawnPattern(byte patternType) {
     switch (patternType) {
         case PATH_PATTERN:
             for (byte sector = 0; sector < NUM_SECTORS; sector++) {
+                if(sector == randomValues[0]){
+                  strips[sector][FIRST_FIELD].setRGB(rWall, gWall, bWall);
+                }else{
                 strips[sector][FIRST_FIELD].setRGB(rPath, gPath, bPath);
+                }
             }
+           
             break;
         // TODO better more random patterns, e.g. 1 gap, 2 gaps, 3 gaps, 4 gaps
         case WALL_PATTERN_1: 
@@ -159,7 +171,6 @@ void spawnPattern(byte patternType) {
             {
                 for (byte i = 0; i < sizeof(randomValues)/sizeof(byte); i++)
                 {
-                  Serial.println(randomValues[i]);
                     if(sector == randomValues[i])
                     {
                         strips[sector][FIRST_FIELD].setRGB(rPath, gPath, bPath);
@@ -179,8 +190,9 @@ void spawnPattern(byte patternType) {
                 {
                     if(sector == randomValues[i])
                     {
-                        strips[sector][FIRST_FIELD].setRGB(rPath, gPath, bPath);
-                        break;
+                      strips[sector][FIRST_FIELD+1].red == rWall;
+                       strips[sector][FIRST_FIELD].setRGB(rPath, gPath, bPath);
+                       break;
                     }
                     else
                     {
@@ -196,8 +208,12 @@ void spawnPattern(byte patternType) {
                 {
                     if(sector == randomValues[i])
                     {
+                      if(strips[sector][FIRST_FIELD+1].red == rWall){
+                          strips[sector+1][FIRST_FIELD].setRGB(rPath, gPath, bPath);
+                          break;
+                      }else{
                         strips[sector][FIRST_FIELD].setRGB(rPath, gPath, bPath);
-                        break;
+                      }
                     }
                     else
                     {
