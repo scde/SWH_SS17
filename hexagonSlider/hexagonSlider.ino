@@ -1,13 +1,12 @@
 #include "FastLED.h"
 //LED Constants
 //Set PINS for all LEDs
-#define PIN_6    6
-#define PIN_7    7
-#define PIN_8    8
-#define PIN_9    9
-#define PIN_10  10
-#define PIN_11  11 
-#define PIN_0    0
+#define SECTOR_5 5
+#define SECTOR_4 6
+#define SECTOR_3 7
+#define SECTOR_2 8
+#define SECTOR_1 9
+#define SECTOR_0 10
 
 //Set Constants for randomization
 # define RANDOMLOWERLIMIT 0
@@ -25,8 +24,8 @@
 
 //Sector Constants
 // TODO Set accordingly
-#define SENSOR_R 5 // with the sensors at 12 o'clock it is the RIGHT one
-#define SENSOR_L 9 // with the sensors at 12 o'clock it is the LEFT one
+#define SENSOR_R 2 // with the sensors at 12 o'clock it is the RIGHT one
+#define SENSOR_L 3 // with the sensors at 12 o'clock it is the LEFT one
 
 #define FIRST_SECTOR 0
 #define LAST_SECTOR 5
@@ -85,7 +84,7 @@ void setup() {
 }
 
 void ledSetup(){
-  randomSeed(analogRead(0));
+    randomSeed(analogRead(0));
     
     wallSpawn = false;
 
@@ -102,12 +101,12 @@ void ledSetup(){
     bPath = 0;
 
     // initialize strips to off
-    FastLED.addLeds<NEOPIXEL, PIN_6>(strips[0], NUM_LEDS_PER_STRIP);
-    FastLED.addLeds<NEOPIXEL, PIN_7>(strips[1], NUM_LEDS_PER_STRIP);
-    FastLED.addLeds<NEOPIXEL, PIN_8>(strips[2], NUM_LEDS_PER_STRIP);
-    FastLED.addLeds<NEOPIXEL, PIN_9>(strips[3], NUM_LEDS_PER_STRIP);
-    FastLED.addLeds<NEOPIXEL, PIN_10>(strips[4], NUM_LEDS_PER_STRIP);
-    FastLED.addLeds<NEOPIXEL, PIN_11>(strips[5], NUM_LEDS_PER_STRIP);
+    FastLED.addLeds<NEOPIXEL, SECTOR_0>(strips[0], NUM_LEDS_PER_STRIP);
+    FastLED.addLeds<NEOPIXEL, SECTOR_1>(strips[1], NUM_LEDS_PER_STRIP);
+    FastLED.addLeds<NEOPIXEL, SECTOR_2>(strips[2], NUM_LEDS_PER_STRIP);
+    FastLED.addLeds<NEOPIXEL, SECTOR_3>(strips[3], NUM_LEDS_PER_STRIP);
+    FastLED.addLeds<NEOPIXEL, SECTOR_4>(strips[4], NUM_LEDS_PER_STRIP);
+    FastLED.addLeds<NEOPIXEL, SECTOR_5>(strips[5], NUM_LEDS_PER_STRIP);
 }
 
 void sensorSetup(){
@@ -172,10 +171,11 @@ void spawnPattern(byte patternType) {
     switch (patternType) {
         case PATH_PATTERN:
             for (byte sector = 0; sector < NUM_SECTORS; sector++) {
-                if(sector == randomValues[0]){
-                  strips[sector][FIRST_FIELD].setRGB(rWall, gWall, bWall);
-                }else{
-                strips[sector][FIRST_FIELD].setRGB(rPath, gPath, bPath);
+                if (sector == randomValues[0]) {
+                    strips[sector][FIRST_FIELD].setRGB(rWall, gWall, bWall);
+                }
+                else {
+                    strips[sector][FIRST_FIELD].setRGB(rPath, gPath, bPath);
                 }
             }
            
@@ -200,7 +200,7 @@ void spawnPattern(byte patternType) {
             }
             break;
         case WALL_PATTERN_2:
-             for (byte sector = 0; sector < NUM_SECTORS; sector++) 
+            for (byte sector = 0; sector < NUM_SECTORS; sector++) 
             {
                 for (byte i = 0; i < sizeof(randomValues)/sizeof(byte)-1; i++)
                 {
