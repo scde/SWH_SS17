@@ -74,317 +74,338 @@ bool atSensorL;
 bool enterSensorL;
 bool wasAtSensorL;
 bool exitSensorL;
-bool exitSensorRLoopBefore;
-bool exitSensorRLoopBefore;
+//bool exitSensorRLoopBefore;
+//bool exitSensorRLoopBefore;
+
+byte randomValues[3];
 
 void setup() {
-    Serial.begin(9600);
-    sensorSetup();
-    ledSetup();
+  Serial.begin(9600);
+  sensorSetup();
+  ledSetup();
 }
 
-void ledSetup(){
-    randomSeed(analogRead(0));
-    
-    wallSpawn = false;
+void ledSetup() {
+  randomSeed(analogRead(0));
 
-    gameSpeed = 800;
-    lastGameUpdate = 0;
+  wallSpawn = false;
+
+  gameSpeed = 1300;
+  lastGameUpdate = 0;
 
 
-    rWall = 150;
-    gWall = 0;
-    bWall = 0;
+  rWall = 150;
+  gWall = 0;
+  bWall = 0;
 
-    rPath = 0;
-    gPath = 150;
-    bPath = 0;
+  rPath = 0;
+  gPath = 150;
+  bPath = 150;
 
-    // initialize strips to off
-    FastLED.addLeds<NEOPIXEL, SECTOR_0>(strips[0], NUM_LEDS_PER_STRIP);
-    FastLED.addLeds<NEOPIXEL, SECTOR_1>(strips[1], NUM_LEDS_PER_STRIP);
-    FastLED.addLeds<NEOPIXEL, SECTOR_2>(strips[2], NUM_LEDS_PER_STRIP);
-    FastLED.addLeds<NEOPIXEL, SECTOR_3>(strips[3], NUM_LEDS_PER_STRIP);
-    FastLED.addLeds<NEOPIXEL, SECTOR_4>(strips[4], NUM_LEDS_PER_STRIP);
-    FastLED.addLeds<NEOPIXEL, SECTOR_5>(strips[5], NUM_LEDS_PER_STRIP);
+  // initialize strips to off
+  FastLED.addLeds<NEOPIXEL, SECTOR_0>(strips[0], NUM_LEDS_PER_STRIP);
+  FastLED.addLeds<NEOPIXEL, SECTOR_1>(strips[1], NUM_LEDS_PER_STRIP);
+  FastLED.addLeds<NEOPIXEL, SECTOR_2>(strips[2], NUM_LEDS_PER_STRIP);
+  FastLED.addLeds<NEOPIXEL, SECTOR_3>(strips[3], NUM_LEDS_PER_STRIP);
+  FastLED.addLeds<NEOPIXEL, SECTOR_4>(strips[4], NUM_LEDS_PER_STRIP);
+  FastLED.addLeds<NEOPIXEL, SECTOR_5>(strips[5], NUM_LEDS_PER_STRIP);
 }
 
-void sensorSetup(){
-    pinMode(SENSOR_R, INPUT);
-    pinMode(SENSOR_L, INPUT);
+void sensorSetup() {
+  pinMode(SENSOR_R, INPUT);
+  pinMode(SENSOR_L, INPUT);
 
-    isCalibrated = false;
+  isCalibrated = false;
 
-    curSector = -1;
-    
-    enterSensorR = false;
-    wasAtSensorR = false;
-    exitSensorR = false;
-    enterSensorL = false;
-    wasAtSensorL = false;
-    exitSensorL = false;
-    exitSensorRLoopBefore = false;
-    exitSensorRLoopBefore = false;
+  curSector = -1;
+
+  enterSensorR = false;
+  wasAtSensorR = false;
+  exitSensorR = false;
+  enterSensorL = false;
+  wasAtSensorL = false;
+  exitSensorL = false;
 }
 void loop() {
-    ledLoop();
-    sensorLoop();
+  ledLoop();
+  sensorLoop();
 }
 
-void ledLoop(){
+void ledLoop() {
+  // Sends several signals in a certain time interval
   if (millis() - lastGameUpdate >= gameSpeed) {
-        lastGameUpdate = millis();
+    lastGameUpdate = millis();
 
-        // moves colors out one field and overwrites the last one
-        for (byte sector = 0; sector < NUM_SECTORS; sector++) {
-            memmove(&strips[sector][FIRST_FIELD + 1],
-                    &strips[sector][FIRST_FIELD],
-                    (NUM_LEDS_PER_STRIP - 1) * sizeof( CRGB));       
-        }
-             
-        if (wallSpawn) {
-          if(millis() <= 10000){
-            spawnPattern(WALL_PATTERN_1);
-        }else if(millis() <= 20000){
-            gameSpeed = 800;
-            spawnPattern(WALL_PATTERN_2);
-          }else if(millis() > 20000){
-            spawnPattern(WALL_PATTERN_3);
-            gameSpeed = 750;
+    /*
+    // moves colors out one field and overwrites the last one
+    for (byte sector = 0; sector < NUM_SECTORS; sector++) {
+      memmove(&strips[sector][FIRST_FIELD + 1],
+              &strips[sector][FIRST_FIELD],
+              (NUM_LEDS_PER_STRIP - 1) * sizeof( CRGB));
+    }
+    */
+    for (byte sector = 0; sector < NUM_SECTORS; sector++) {
+      for (byte segment = NUM_LEDS_PER_STRIP -1; segment > 0; segment--) {
+        strips[sector][segment] = strips[sector][segment-1];
+      }
+    }
+    // checks what pattern is the actual pattern in playtime
+    if (wallSpawn) {
+      if (millis() <= 10000) {
+        spawnPattern(WALL_PATTERN_1);
+      } else if (millis() <= 30000) {
+        gameSpeed = 1200;
+        spawnPattern(WALL_PATTERN_2);
+      } else if (millis() > 30000) {
+        spawnPattern(WALL_PATTERN_3);
+        gameSpeed = 1100;
+      }
+    }
+    else {
+      spawnPattern(PATH_PATTERN);
+    }
+    wallSpawn = !wallSpawn;
+
+    FastLED.show();
+
+  }
+}
+
+
+void spawnPattern(byte patternType) {
+  boolean recall = true;
+  while(recall == true){
+    recall = false;
+  // fills a byte array with randomvalues
+  //These values ​​symbolize the door sectors
+  randomValues[3];
+  getRandomArray(randomValues);
+
+  // switch case in which the different cases are processed
+  switch (patternType) {
+
+    // Puts a hiking trail for the player
+    // trail includes on wall
+    case PATH_PATTERN:
+      for (byte sector = 0; sector < NUM_SECTORS; sector++) {
+        if (sector == randomValues[0]) {
+          if (strips[sector][FIRST_FIELD + 1].green == gPath ) {
+
+            while ( sector == randomValues[0]) {
+              randomValues[0] = random(0, 5);
+            }
+            strips[randomValues[0]][FIRST_FIELD].setRGB(rWall, gWall, bWall);
+          } else {
+            strips[sector][FIRST_FIELD].setRGB(rWall, gWall, bWall);
           }
         }
         else {
-            spawnPattern(PATH_PATTERN);
+          strips[sector][FIRST_FIELD].setRGB(rPath, gPath, bPath);
         }
-        wallSpawn = !wallSpawn;
+      }
+      break;
 
-        FastLED.show();
+    //  Generates walls with 3 doors
+    case WALL_PATTERN_1:
 
+      for (byte sector = 0; sector < NUM_SECTORS; sector++)
+      {
+        for (byte i = 0; i < sizeof(randomValues) / sizeof(byte); i++)
+        {
+          if (sector == randomValues[i])
+          {
+            strips[sector][FIRST_FIELD].setRGB(rPath, gPath, bPath);
+            break;
+          }
+          else
+          {
+            strips[sector][FIRST_FIELD].setRGB(rWall, gWall, bWall);
+          }
+        }
+      }
+      break;
+
+    //  Generates walls with 2 doors
+    case WALL_PATTERN_2:
+      for (byte sector = 0; sector < NUM_SECTORS; sector++)
+      {
+        for (byte i = 0; i < sizeof(randomValues) / sizeof(byte) - 1; i++)
+        {
+          if (sector == randomValues[i])
+          {
+            strips[sector][FIRST_FIELD].setRGB(rPath, gPath, bPath);
+            break;
+          }
+          else
+          {
+            strips[sector][FIRST_FIELD].setRGB(rWall, gWall, bWall);
+          }
+        }
+      }
+      break;
+
+    //  Generates walls with 1 door
+    case WALL_PATTERN_3:
+      for (byte sector = 0; sector < NUM_SECTORS; sector++)
+      {
+        for (byte i = 0; i < sizeof(randomValues) / sizeof(byte) - 2; i++)
+        {
+          if (sector == randomValues[i])
+          {
+            if (strips[sector][FIRST_FIELD + 1].red == rWall) {
+              strips[sector + 1][FIRST_FIELD].setRGB(rPath, gPath, bPath);
+              break;
+            } else {
+              strips[sector][FIRST_FIELD].setRGB(rPath, gPath, bPath);
+            }
+          }
+          else
+          {
+            strips[sector][FIRST_FIELD].setRGB(rWall, gWall, bWall);
+          }
+        }
+      }
+      break;
+  }
+
+  // checks if all sectors are walls
+  //then it calls spawnPattern again
+  byte counter = 0;
+  for (byte sector = 0; sector < NUM_SECTORS; sector++) {
+    if (strips[sector][FIRST_FIELD].red == rWall && strips[sector][FIRST_FIELD].green == gWall && strips[sector][FIRST_FIELD].blue == bWall) {
+      counter ++;
     }
+    if (counter == 6) {
+      recall = true;
+    }
+  }
+  }
 }
 
-void spawnPattern(byte patternType) {
-  int randomDoor = -1;
-  byte randomValues[3];
-  getRandomArray(randomValues, (sizeof(randomValues)/sizeof(byte)));
-  
-    switch (patternType) {
-        case PATH_PATTERN:
-            for (byte sector = 0; sector < NUM_SECTORS; sector++) {
-                if (sector == randomValues[0]) {
-                    strips[sector][FIRST_FIELD].setRGB(rWall, gWall, bWall);
-                }
-                else {
-                    strips[sector][FIRST_FIELD].setRGB(rPath, gPath, bPath);
-                }
-            }
-           
-            break;
-        // TODO better more random patterns, e.g. 1 gap, 2 gaps, 3 gaps, 4 gaps
-        case WALL_PATTERN_1: 
-       
-            for (byte sector = 0; sector < NUM_SECTORS; sector++) 
-            {
-                for (byte i = 0; i < sizeof(randomValues)/sizeof(byte); i++)
-                {
-                    if(sector == randomValues[i])
-                    {
-                        strips[sector][FIRST_FIELD].setRGB(rPath, gPath, bPath);
-                        break;
-                    }
-                    else
-                    {
-                        strips[sector][FIRST_FIELD].setRGB(rWall, gWall, bWall);
-                    }
-                }
-            }
-            break;
-        case WALL_PATTERN_2:
-            for (byte sector = 0; sector < NUM_SECTORS; sector++) 
-            {
-                for (byte i = 0; i < sizeof(randomValues)/sizeof(byte)-1; i++)
-                {
-                    if(sector == randomValues[i])
-                    {
-                      strips[sector][FIRST_FIELD+1].red == rWall;
-                       strips[sector][FIRST_FIELD].setRGB(rPath, gPath, bPath);
-                       break;
-                    }
-                    else
-                    {
-                        strips[sector][FIRST_FIELD].setRGB(rWall, gWall, bWall);
-                    }
-                }
-            }
-            break;
-        case WALL_PATTERN_3:
-            for (byte sector = 0; sector < NUM_SECTORS; sector++) 
-            {
-                for (byte i = 0; i < sizeof(randomValues)/sizeof(byte)-2; i++)
-                {
-                    if(sector == randomValues[i])
-                    {
-                      if(strips[sector][FIRST_FIELD+1].red == rWall){
-                          strips[sector+1][FIRST_FIELD].setRGB(rPath, gPath, bPath);
-                          break;
-                      }else{
-                        strips[sector][FIRST_FIELD].setRGB(rPath, gPath, bPath);
-                      }
-                    }
-                    else
-                    {
-                        strips[sector][FIRST_FIELD].setRGB(rWall, gWall, bWall);
-                    }
-                }
-            }
-            break;
-    }
-    
-   byte counter = 0;
-   for (byte sector = 0; sector < NUM_SECTORS; sector++) {
-     if(strips[sector][FIRST_FIELD].red ==rWall && strips[sector][FIRST_FIELD].green == gWall && strips[sector][FIRST_FIELD].blue == bWall){
-       counter ++;
-     }
-     if(counter == 6){
-      spawnPattern(patternType);
-     }
-   }
-}
+// fills a byte array with randomValues
+// All values in the array are different
 
-void getRandomArray(byte *randomValues, int length ){
+void getRandomArray(byte *randomValues) {
 
-  int openFields=3;
+  int openFields = 3;
   long lastNumber = 0;
-  for (byte i =0;i<openFields;i++){
-    long minNumber = lastNumber + iteration; 
-    long maxNumber = 5 - (openFields-i-1) + iteration;
+  for (byte i = 0; i < openFields; i++) {
+    long minNumber = lastNumber + iteration;
+    long maxNumber = 5 - (openFields - i - 1) + iteration;
     long randomNumber = random( minNumber,  maxNumber + 1);
     randomNumber = (randomNumber + iteration) % 6;
     randomValues[i] = randomNumber;
-    lastNumber = randomNumber+1;
+    lastNumber = randomNumber + 1;
   }
   iteration++;
 }
 
-void randomizeColors() {
-    byte wallColor = (byte) random(0, 255);
-    byte pathColor = (byte) random(0, 255);
-
-    rWall = wallColor;
-    gWall = wallColor;
-    bWall = wallColor;
-
-    rPath = pathColor;
-    gPath = pathColor;
-    bPath = pathColor;
-}
-
-void sensorLoop(){
+void sensorLoop() {
   checkSensors();
-    
-    if (!isCalibrated) {
-        calibrateSectors();
-    }
-    else {
-        calculateSector();
-        // TODO start game
-    }
+
+  if (!isCalibrated) {
+    calibrateSectors();
+  }
+  else {
+    calculateSector();
+    // TODO start game
+  }
 }
 
 // check light sensor readings
 void checkSensors() {
-    // reset enter and exit values
-    enterSensorR = false;
-    exitSensorR = false;
+  // reset enter and exit values
+  enterSensorR = false;
+  exitSensorR = false;
 
-    enterSensorL = false;
-    exitSensorL = false;
-   
-    // read new sensor data
-    atSensorR = digitalRead(SENSOR_R) == LOW;
-    atSensorL = digitalRead(SENSOR_L) == LOW;
+  enterSensorL = false;
+  exitSensorL = false;
 
-    // check if right sensor values changed
-    if (wasAtSensorR != atSensorR) {
-        // check if exiting right sensor
-        if (wasAtSensorR) {
-            exitSensorR = true;
-        }
-        // check if entering right sensor
-        else {
-            enterSensorR = true;
-        }
+  // read new sensor data
+  atSensorR = digitalRead(SENSOR_R) == LOW;
+  atSensorL = digitalRead(SENSOR_L) == LOW;
+
+  // check if right sensor values changed
+  if (wasAtSensorR != atSensorR) {
+    // check if exiting right sensor
+    if (wasAtSensorR) {
+      exitSensorR = true;
     }
-
-    // check if left sensor values changed
-    if (wasAtSensorL != atSensorL) {
-        // check if exiting left sensor
-        if (wasAtSensorL) {
-            exitSensorL = true;
-        }
-        // check if entering left sensor
-        else {
-            enterSensorL = true;
-        }
+    // check if entering right sensor
+    else {
+      enterSensorR = true;
     }
+  }
 
-    // set values for next loop
-    wasAtSensorR = atSensorR;
-    wasAtSensorL = atSensorL;
+  // check if left sensor values changed
+  if (wasAtSensorL != atSensorL) {
+    // check if exiting left sensor
+    if (wasAtSensorL) {
+      exitSensorL = true;
+    }
+    // check if entering left sensor
+    else {
+      enterSensorL = true;
+    }
+  }
+
+  // set values for next loop
+  wasAtSensorR = atSensorR;
+  wasAtSensorL = atSensorL;
 }
 
 void calibrateSectors() {
-    // initialize when exiting left
-    if (exitSensorR && !atSensorL) {
-        isCalibrated = true; // starts game
-        curSector = FIRST_SECTOR;
-    }
-    // initialize when exiting right
-    if (exitSensorL && !atSensorR) {
-        isCalibrated = true; // starts game
-        curSector = LAST_SECTOR;
-    }
+  // initialize when exiting left
+  if (exitSensorR && !atSensorL) {
+    isCalibrated = true; // starts game
+    curSector = FIRST_SECTOR;
+  }
+  // initialize when exiting right
+  if (exitSensorL && !atSensorR) {
+    isCalibrated = true; // starts game
+    curSector = LAST_SECTOR;
+  }
 }
 
 void calculateSector() {
-    // 4. set pointer position (all pointers are able to trigger both sensors)
-    // trigger both sensors
-    if (atSensorR && atSensorL) {
-        // moving pointer to the right over sensors barrier
-        if (enterSensorR) {
-            // handle overflow
+  // 4. set pointer position (all pointers are able to trigger both sensors)
+  // trigger both sensors
+  if (atSensorR && atSensorL) {
+    // moving pointer to the right over sensors barrier
+    if (enterSensorR) {
+      // handle overflow
 
-            if(wasAtSensorR){
-              curSector = FIRST_SECTOR;
-            }
-            
-            if (curSector == LAST_SECTOR) {
-                curSector = FIRST_SECTOR;
-            }
-            else {
-                curSector++;
-            }
-        }
-        // moving pointer to the left over sensors barrier
-        else if (enterSensorL) {
-            // handle underflow
-            if (curSector == FIRST_SECTOR) {
-                curSector = LAST_SECTOR;
-            }
-            else {
-                curSector--;
-            }
-        }
+      if (wasAtSensorR) {
+        curSector = FIRST_SECTOR;
+      }
+
+      if (curSector == LAST_SECTOR) {
+        curSector = FIRST_SECTOR;
+      }
+      else {
+        curSector++;
+      }
     }
-    // TODO FIXME if ist nicht ausreichend weil es sein kann das sie sich reinbewegen zurück aber nicht komplett raus und wieder rein
-    else {
-        switch (moveDirection) {
-            case MOVING_RIGHT:
-                break;
-            case MOVING_LEFT:
-                break;
-            case MOVING_IN_SECTOR:
-                break;
-        }
+    // moving pointer to the left over sensors barrier
+    else if (enterSensorL) {
+      // handle underflow
+      if (curSector == FIRST_SECTOR) {
+        curSector = LAST_SECTOR;
+      }
+      else {
+        curSector--;
+      }
     }
+  }
+  // TODO FIXME if ist nicht ausreichend weil es sein kann das sie sich reinbewegen zurück aber nicht komplett raus und wieder rein
+  else {
+    switch (moveDirection) {
+      case MOVING_RIGHT:
+        break;
+      case MOVING_LEFT:
+        break;
+      case MOVING_IN_SECTOR:
+        break;
+    }
+  }
 }
