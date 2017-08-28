@@ -139,7 +139,7 @@ void loop() {
 void checkCollision() {
   if (strips[curSector][NUM_LEDS_PER_STRIP - 1].r == rWall) {
     // TODO game over animation and restart
-    gameOver();
+   // gameOver();
   }
 }
 
@@ -186,19 +186,18 @@ void ledLoop() {
   if (millis() - lastGameUpdate >= gameSpeed) {
     lastGameUpdate = millis();
 
-    /*
       // moves colors out one field and overwrites the last one
       for (byte sector = 0; sector < NUM_SECTORS; sector++) {
       memmove(&strips[sector][FIRST_FIELD + 1],
               &strips[sector][FIRST_FIELD],
               (NUM_LEDS_PER_STRIP - 1) * sizeof( CRGB));
       }
-    */
-    for (byte sector = 0; sector < NUM_SECTORS; sector++) {
+    
+    /*for (byte sector = 0; sector < NUM_SECTORS; sector++) {
       for (byte segment = NUM_LEDS_PER_STRIP - 1; segment > 0; segment--) {
         strips[sector][segment] = strips[sector][segment - 1];
       }
-    }
+    }*/
     // checks what pattern is the actual pattern in playtime
     if (wallSpawn) {
       if (millis() <= 10000) {
